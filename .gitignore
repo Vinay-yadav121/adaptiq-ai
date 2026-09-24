@@ -1,0 +1,14 @@
+# Node.js dependencies (huge, can be re-created with npm install)
+node_modules/
+
+# Secrets such as API keys and database passwords. NEVER upload these
+.env
+
+# Python
+__pycache__/
+venv/
+.venv/
+
+# Operating system junk
+.DS_Store
+Thumbs.db
