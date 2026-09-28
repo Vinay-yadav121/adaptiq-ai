@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+
 function StudentCard({ name, score }) {
   return (
     <div style={{ border: "1px solid gray", padding: "16px", margin: "8px", borderRadius: "8px" }}>
@@ -8,12 +10,19 @@ function StudentCard({ name, score }) {
 }
 
 function App() {
-  const students = [
-    { id: 1, name: "Vinay", score: 88 },
-    { id: 2, name: "Rahul", score: 55 },
-    { id: 3, name: "Aisha", score: 30 },
-    { id: 4, name: "Priya", score: 72 },
-  ];
+  // State: the list of students, empty until the server replies
+  const [students, setStudents] = useState([]);
+
+  // Runs once, after the page first appears
+  useEffect(() => {
+    async function loadStudents() {
+      const response = await fetch("http://localhost:5001/api/students");
+      const data = await response.json();
+      setStudents(data);
+    }
+
+    loadStudents();
+  }, []);
 
   return (
     <div>
