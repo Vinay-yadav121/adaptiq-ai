@@ -5,11 +5,15 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const studentsRoute = require("./routes/students");
 const authRoute = require("./routes/auth");
+const subjectsRoute = require("./routes/subjects");
+const quizzesRoute = require("./routes/quizzes");
 
 const app = express();
 app.use(cors());
 app.use(express.json()); // lets Express read JSON from request bodies
 
+app.use("/api/quizzes", quizzesRoute);
+app.use("/api/subjects", subjectsRoute);
 app.use("/api/students", studentsRoute);
 app.use("/api/auth", authRoute);
 
