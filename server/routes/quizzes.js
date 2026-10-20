@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Quiz = require("../models/Quiz");
 const requireAuth = require("../middleware/auth");
+const Attempt = require("../models/Attempt");
 
 // GET /api/quizzes/topic/:topicId — fetch the quiz for a topic (without revealing correct answers)
 router.get("/topic/:topicId", requireAuth, async (req, res) => {
@@ -31,7 +32,7 @@ router.get("/topic/:topicId", requireAuth, async (req, res) => {
 // POST /api/quizzes/:quizId/submit — submit answers and get a score
 router.post("/:quizId/submit", requireAuth, async (req, res) => {
   try {
-    const { answers } = req.body; // expected: array of selected option indexes, in question order
+    const { answers } = req.body;
 
     const quiz = await Quiz.findById(req.params.quizId);
     if (!quiz) {
@@ -46,6 +47,16 @@ router.post("/:quizId/submit", requireAuth, async (req, res) => {
     });
 
     const score = Math.round((correctCount / quiz.questions.length) * 100);
+
+    // Save this attempt so it becomes part of the student's performance history
+    await Attempt.create({
+      user: req.userId,
+      quiz: quiz._id,
+      topic: quiz.topic,
+      score,
+      correctCount,
+      totalQuestions: quiz.questions.length,
+    });
 
     res.json({
       score,
