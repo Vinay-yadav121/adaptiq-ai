@@ -8,15 +8,16 @@ import "./dashboard.css";
 function Dashboard() {
   const { token, logout } = useAuth();
   const [user, setUser] = useState(null);
+  const [subjects, setSubjects] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const headers = { Authorization: `Bearer ${token}` };
+
+    fetch("http://localhost:5001/api/auth/me", { headers })
       .then((res) => {
         if (res.status === 401) {
-          logout(); // token expired or invalid
+          logout();
           return null;
         }
         if (!res.ok) throw new Error("Request failed");
@@ -26,6 +27,14 @@ function Dashboard() {
         if (data) setUser(data);
       })
       .catch(() => setError("Could not load your profile."));
+
+    fetch("http://localhost:5001/api/subjects", { headers })
+      .then((res) => {
+        if (!res.ok) throw new Error("Request failed");
+        return res.json();
+      })
+      .then((data) => setSubjects(data))
+      .catch(() => setError("Could not load subjects."));
   }, [token]);
 
   return (
@@ -33,6 +42,17 @@ function Dashboard() {
       <h1>AdaptIQ AI Dashboard</h1>
       {error && <p>{error}</p>}
       {user ? <p>Welcome, {user.name}!</p> : !error && <p>Loading...</p>}
+
+      <h2>Subjects</h2>
+      <ul className="subject-list">
+        {subjects.map((s) => (
+          <li key={s._id}>
+            <strong>{s.name}</strong>
+            <span>{s.description}</span>
+          </li>
+        ))}
+      </ul>
+
       <button onClick={logout}>Log out</button>
     </div>
   );
