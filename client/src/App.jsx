@@ -1,36 +1,48 @@
-import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./AuthContext";
+import Login from "./Login";
+import Register from "./Register";
 
-function StudentCard({ name, score }) {
+function Dashboard() {
+  const { token, logout } = useAuth();
+
   return (
-    <div style={{ border: "1px solid gray", padding: "16px", margin: "8px", borderRadius: "8px" }}>
-      <h2>{name}</h2>
-      <p>Score: {score}</p>
+    <div style={{ maxWidth: "500px", margin: "40px auto" }}>
+      <h1>AdaptIQ AI Dashboard</h1>
+      <p>You are logged in.</p>
+      <button onClick={logout}>Log out</button>
     </div>
   );
 }
 
+// Blocks access to a page unless the student has a token
+function ProtectedRoute({ children }) {
+  const { token } = useAuth();
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+  return children;
+}
+
 function App() {
-  // State: the list of students, empty until the server replies
-  const [students, setStudents] = useState([]);
-
-  // Runs once, after the page first appears
-  useEffect(() => {
-    async function loadStudents() {
-      const response = await fetch("http://localhost:5001/api/students");
-      const data = await response.json();
-      setStudents(data);
-    }
-
-    loadStudents();
-  }, []);
-
   return (
-    <div>
-      <h1>AdaptIQ AI</h1>
-      {students.map((student) => (
-        <StudentCard key={student.id} name={student.name} score={student.score} />
-      ))}
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/login" />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
