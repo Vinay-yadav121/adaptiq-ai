@@ -1,26 +1,22 @@
 const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema({
-  questionText: { type: String, required: true },
+  text: { type: String, required: true },
   options: {
-    type: [String], // an array of strings
-    required: true,
+    type: [String],
+    validate: [(v) => v.length >= 2 && v.length <= 6, "A question needs 2 to 6 options"],
   },
-  correctAnswerIndex: {
-    type: Number, // which position in "options" is correct (0, 1, 2, or 3)
-    required: true,
-  },
+  correctIndex: { type: Number, required: true, min: 0 },
+  topic: { type: mongoose.Schema.Types.ObjectId, ref: "Topic", required: true },
 });
 
-const quizSchema = new mongoose.Schema({
-  topic: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Topic",
-    required: true,
+const quizSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, trim: true },
+    subject: { type: mongoose.Schema.Types.ObjectId, ref: "Subject", required: true },
+    questions: [questionSchema],
   },
-  questions: [questionSchema], // an array of question sub-documents
-});
+  { timestamps: true }
+);
 
-const Quiz = mongoose.model("Quiz", quizSchema);
-
-module.exports = Quiz;
+module.exports = mongoose.model("Quiz", quizSchema);
