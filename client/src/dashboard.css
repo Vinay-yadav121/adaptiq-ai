@@ -57,3 +57,63 @@ h1 {
   color: #b8bfd1;
   font-size: 0.95rem;
 }
+.dashboard a {
+  color: #8ea2ff;
+}
+
+.quiz {
+  max-width: 640px;
+  text-align: left;
+}
+
+.quiz h1 {
+  text-align: center;
+}
+
+.score {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.question {
+  margin-bottom: 20px;
+}
+
+.question > p {
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.option {
+  display: block;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: #272c3d;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.option input {
+  margin-right: 8px;
+}
+
+.option.chosen {
+  border-color: #4f6bed;
+}
+
+.option.correct {
+  border-color: #2fb26a;
+  background: #1d3a2c;
+}
+
+.option.wrong {
+  border-color: #d94b4b;
+  background: #3d2224;
+}
+
+.dashboard button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

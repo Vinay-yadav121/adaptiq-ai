@@ -1,38 +1,27 @@
 const mongoose = require("mongoose");
 
-const attemptSchema = new mongoose.Schema(
+const topicResultSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    quiz: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Quiz",
-      required: true,
-    },
-    topic: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Topic",
-      required: true,
-    },
-    score: {
-      type: Number,
-      required: true,
-    },
-    correctCount: {
-      type: Number,
-      required: true,
-    },
-    totalQuestions: {
-      type: Number,
-      required: true,
-    },
+    topic: { type: mongoose.Schema.Types.ObjectId, ref: "Topic", required: true },
+    correct: { type: Number, required: true, min: 0 },
+    total: { type: Number, required: true, min: 1 },
   },
-  { timestamps: true } // automatically adds createdAt and updatedAt
+  { _id: false }
 );
 
-const Attempt = mongoose.model("Attempt", attemptSchema);
+const attemptSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    quiz: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz", required: true },
+    subject: { type: mongoose.Schema.Types.ObjectId, ref: "Subject" },
+    score: { type: Number, required: true, min: 0 },
+    total: { type: Number, required: true, min: 1 },
+    timeTakenSec: { type: Number, min: 0 },
+    topicResults: [topicResultSchema],
+  },
+  { timestamps: true }
+);
 
-module.exports = Attempt;
+attemptSchema.index({ user: 1, createdAt: -1 });
+
+module.exports = mongoose.model("Attempt", attemptSchema);

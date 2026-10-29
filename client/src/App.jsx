@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
 import Login from "./Login";
 import Register from "./Register";
+import { QuizList, QuizPage } from "./Quiz";
 import "./dashboard.css";
 
 function Dashboard() {
@@ -43,6 +44,10 @@ function Dashboard() {
       {error && <p>{error}</p>}
       {user ? <p>Welcome, {user.name}!</p> : !error && <p>Loading...</p>}
 
+      <p>
+        <Link to="/quizzes">Take a quiz</Link>
+      </p>
+
       <h2>Subjects</h2>
       <ul className="subject-list">
         {subjects.map((s) => (
@@ -79,6 +84,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quizzes"
+            element={
+              <ProtectedRoute>
+                <QuizList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/:id"
+            element={
+              <ProtectedRoute>
+                <QuizPage />
               </ProtectedRoute>
             }
           />

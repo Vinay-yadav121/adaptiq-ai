@@ -2,68 +2,84 @@ const express = require("express");
 const router = express.Router();
 const Quiz = require("../models/Quiz");
 const requireAuth = require("../middleware/auth");
-const Attempt = require("../models/Attempt");
+const scoreQuiz = require("../utils/scoreQuiz");
+const recordAttempt = require("../utils/recordAttempt");
 
-// GET /api/quizzes/topic/:topicId — fetch the quiz for a topic (without revealing correct answers)
-router.get("/topic/:topicId", requireAuth, async (req, res) => {
+// GET /api/quizzes  -> list of quizzes (no questions)
+router.get("/", requireAuth, async (req, res) => {
   try {
-    const quiz = await Quiz.findOne({ topic: req.params.topicId });
-    if (!quiz) {
-      return res.status(404).json({ error: "No quiz found for this topic" });
-    }
-
-    // Build a safe version that hides correctAnswerIndex from the student
-    const safeQuiz = {
-      _id: quiz._id,
-      topic: quiz.topic,
-      questions: quiz.questions.map((q) => ({
-        _id: q._id,
-        questionText: q.questionText,
-        options: q.options,
-      })),
-    };
-
-    res.json(safeQuiz);
+    const quizzes = await Quiz.find().sort("title");
+    res.json(
+      quizzes.map((q) => ({
+        id: q._id,
+        title: q.title,
+        subject: q.subject,
+        questionCount: q.questions.length,
+      }))
+    );
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch quiz" });
+    res.status(500).json({ error: "Failed to fetch quizzes" });
   }
 });
 
-// POST /api/quizzes/:quizId/submit — submit answers and get a score
-router.post("/:quizId/submit", requireAuth, async (req, res) => {
+// GET /api/quizzes/:id  -> one quiz WITHOUT the correct answers
+router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const { answers } = req.body;
-
-    const quiz = await Quiz.findById(req.params.quizId);
+    const quiz = await Quiz.findById(req.params.id);
     if (!quiz) {
       return res.status(404).json({ error: "Quiz not found" });
     }
 
-    let correctCount = 0;
-    quiz.questions.forEach((question, i) => {
-      if (answers[i] === question.correctAnswerIndex) {
-        correctCount++;
-      }
-    });
-
-    const score = Math.round((correctCount / quiz.questions.length) * 100);
-
-    // Save this attempt so it becomes part of the student's performance history
-    await Attempt.create({
-      user: req.userId,
-      quiz: quiz._id,
-      topic: quiz.topic,
-      score,
-      correctCount,
-      totalQuestions: quiz.questions.length,
-    });
-
     res.json({
-      score,
-      correctCount,
-      totalQuestions: quiz.questions.length,
+      id: quiz._id,
+      title: quiz.title,
+      subject: quiz.subject,
+      questions: quiz.questions.map((q) => ({
+        id: q._id,
+        text: q.text,
+        options: q.options,
+      })),
     });
   } catch (err) {
+    res.status(400).json({ error: "Invalid quiz id" });
+  }
+});
+
+// POST /api/quizzes/:id/submit
+// body: { answers: [{ questionId, selected }], timeTakenSec? }
+router.post("/:id/submit", requireAuth, async (req, res) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz) {
+      return res.status(404).json({ error: "Quiz not found" });
+    }
+
+    const { answers, timeTakenSec } = req.body;
+    if (!Array.isArray(answers)) {
+      return res.status(400).json({ error: "answers must be an array" });
+    }
+
+    const result = scoreQuiz(quiz, answers);
+
+    const attempt = await recordAttempt({
+      userId: req.userId,
+      quizId: quiz._id,
+      subjectId: quiz.subject,
+      score: result.score,
+      total: result.total,
+      timeTakenSec,
+      topicResults: result.topicResults,
+    });
+
+    res.status(201).json({
+      attemptId: attempt._id,
+      score: result.score,
+      total: result.total,
+      percent: Math.round((result.score / result.total) * 100),
+      review: result.review,
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to submit quiz" });
   }
 });
