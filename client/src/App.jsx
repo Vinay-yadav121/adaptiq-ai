@@ -6,36 +6,42 @@ import Register from "./Register";
 import { QuizList, QuizPage } from "./Quiz";
 import "./dashboard.css";
 
+const API = "http://localhost:5001/api";
+
 function Dashboard() {
   const { token, logout } = useAuth();
   const [user, setUser] = useState(null);
   const [subjects, setSubjects] = useState([]);
+  const [attempts, setAttempts] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${token}` };
 
-    fetch("http://localhost:5001/api/auth/me", { headers })
-      .then((res) => {
+    function load(path) {
+      return fetch(`${API}${path}`, { headers }).then((res) => {
         if (res.status === 401) {
           logout();
           return null;
         }
         if (!res.ok) throw new Error("Request failed");
         return res.json();
-      })
-      .then((data) => {
-        if (data) setUser(data);
-      })
-      .catch(() => setError("Could not load your profile."));
+      });
+    }
 
-    fetch("http://localhost:5001/api/subjects", { headers })
-      .then((res) => {
-        if (!res.ok) throw new Error("Request failed");
-        return res.json();
-      })
-      .then((data) => setSubjects(data))
+    load("/auth/me")
+      .then((data) => data && setUser(data))
+      .catch(() => setError("Could not load your profile."));
+    load("/subjects")
+      .then((data) => data && setSubjects(data))
       .catch(() => setError("Could not load subjects."));
+    load("/attempts?limit=5")
+      .then((data) => data && setAttempts(data))
+      .catch(() => setError("Could not load your attempts."));
+    load("/attempts/topics")
+      .then((data) => data && setTopics(data))
+      .catch(() => setError("Could not load topic performance."));
   }, [token]);
 
   return (
@@ -47,6 +53,40 @@ function Dashboard() {
       <p>
         <Link to="/quizzes">Take a quiz</Link>
       </p>
+
+      <h2>Topic performance</h2>
+      {topics.length === 0 ? (
+        <p>Take a quiz to see how you are doing on each topic.</p>
+      ) : (
+        <ul className="subject-list">
+          {topics.map((t) => (
+            <li key={t.topicId}>
+              <strong>
+                {t.topic} {t.weak && <em className="weak-badge">weak</em>}
+              </strong>
+              <span>
+                {t.subject} - {t.accuracy}% ({t.correct}/{t.total} correct)
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2>Recent attempts</h2>
+      {attempts.length === 0 ? (
+        <p>No attempts yet.</p>
+      ) : (
+        <ul className="subject-list">
+          {attempts.map((a) => (
+            <li key={a.id}>
+              <strong>{a.quiz ? a.quiz.title : "Quiz"}</strong>
+              <span>
+                {a.score}/{a.total} ({a.percent}%) on {new Date(a.takenAt).toLocaleDateString()}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <h2>Subjects</h2>
       <ul className="subject-list">

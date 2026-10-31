@@ -7,6 +7,7 @@ const studentsRoute = require("./routes/students");
 const authRoute = require("./routes/auth");
 const subjectsRoute = require("./routes/subjects");
 const quizzesRoute = require("./routes/quizzes");
+const attemptsRoute = require("./routes/attempts");
 
 const app = express();
 app.use(cors());
@@ -16,6 +17,7 @@ app.use("/api/quizzes", quizzesRoute);
 app.use("/api/subjects", subjectsRoute);
 app.use("/api/students", studentsRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/attempts", attemptsRoute);
 
 app.get("/", (req, res) => {
   res.send("AdaptIQ AI server is running!");
