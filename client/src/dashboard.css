@@ -126,3 +126,23 @@ h1 {
   background: #d94b4b;
   border-radius: 999px;
 }
+.mastery-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-style: normal;
+  color: #fff;
+  border-radius: 999px;
+}
+
+.mastery-badge.weak {
+  background: #d94b4b;
+}
+
+.mastery-badge.developing {
+  background: #c98a1b;
+}
+
+.mastery-badge.strong {
+  background: #2fb26a;
+}

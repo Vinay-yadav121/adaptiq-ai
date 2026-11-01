@@ -14,6 +14,7 @@ function Dashboard() {
   const [subjects, setSubjects] = useState([]);
   const [attempts, setAttempts] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [mastery, setMastery] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -42,6 +43,9 @@ function Dashboard() {
     load("/attempts/topics")
       .then((data) => data && setTopics(data))
       .catch(() => setError("Could not load topic performance."));
+    load("/mastery")
+      .then((data) => data && setMastery(data))
+      .catch(() => setMastery([]));
   }, [token]);
 
   return (
@@ -53,6 +57,25 @@ function Dashboard() {
       <p>
         <Link to="/quizzes">Take a quiz</Link>
       </p>
+
+      <h2>Predicted mastery</h2>
+      {mastery.length === 0 ? (
+        <p>Predictions appear once you take a quiz (the ML service must be running).</p>
+      ) : (
+        <ul className="subject-list">
+          {mastery.map((m) => (
+            <li key={m.topicId}>
+              <strong>
+                {m.topic} <em className={`mastery-badge ${m.mastery}`}>{m.mastery}</em>
+              </strong>
+              <span>
+                {m.subject} - {Math.round(m.probability * 100)}% chance of getting the next
+                question right
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <h2>Topic performance</h2>
       {topics.length === 0 ? (
