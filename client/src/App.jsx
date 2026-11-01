@@ -5,8 +5,8 @@ import Login from "./Login";
 import Register from "./Register";
 import { QuizList, QuizPage } from "./Quiz";
 import "./dashboard.css";
+import { API } from "./config";
 
-const API = "http://localhost:5001/api";
 
 function Dashboard() {
   const { token, logout } = useAuth();

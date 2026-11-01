@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-
-const API = "http://localhost:5001/api";
+import { API } from "./config";
 
 // Page 1: list of all quizzes
 export function QuizList() {
